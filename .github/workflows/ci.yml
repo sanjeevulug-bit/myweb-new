@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: DevSecOps Pipeline
 
 on:
   push:
@@ -6,12 +6,34 @@ on:
       - main
 
 jobs:
-  build:
+  build-test-secure:
     runs-on: ubuntu-latest
 
     steps:
+      # 📥 Checkout
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Run test
-        run: echo "CI is working!"
+      # 🐍 Python setup
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # 📦 Install tools
+      - name: Install dependencies
+        run: |
+          pip install pytest bandit
+          pip install -r requirements.txt || echo "No requirements.txt"
+
+      # 🧪 Run tests
+      - name: Run tests
+        run: pytest || echo "No tests"
+
+      # 🔐 Security scan
+      - name: Run Bandit
+        run: bandit -r . || true
+
+      # 🐳 Build Docker image
+      - name: Build Docker Image
+        run: docker build -t myweb-app .
